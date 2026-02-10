@@ -3,7 +3,7 @@ import { Header } from './Header';
 import { Footer } from './Footer';
 import { MobileBottomNav } from './MobileBottomNav';
 import { LazyWrapper } from '@/components/ui/LazyWrapper';
-import { HeaderShimmer, FooterShimmer } from '@/components/ui/shimmer';
+import { HeaderShimmer, FooterShimmer } from '@/components/ui/Shimmer';
 import { Suspense } from 'react';
 import { useLocation } from 'react-router-dom';
 

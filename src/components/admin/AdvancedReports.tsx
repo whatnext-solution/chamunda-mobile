@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ChartShimmer, TableShimmer, StatsCardShimmer } from '@/components/ui/shimmer';
+import { ChartShimmer, TableShimmer, StatsCardShimmer } from '@/components/ui/Shimmer';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   BarChart3, 
