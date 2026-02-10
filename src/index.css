@@ -1,0 +1,844 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Modern E-commerce Design System - Inline */
+:root {
+  /* Spacing System (8px grid) */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+
+  /* Modern Colors */
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-light: #3b82f6;
+  --primary-bg: #eff6ff;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 250ms ease-in-out;
+}
+
+/* Modern Animations */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from { 
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Modern Typography */
+.text-display {
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.text-body {
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* Container */
+.container-modern {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 768px) {
+  .container-modern {
+    padding: 0 1.5rem;
+  }
+}
+
+/* Safe Area for Mobile */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* High Contrast CTA */
+.cta-high-contrast {
+  background: #111827;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  font-weight: 700;
+  transition: all 150ms ease-in-out;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cta-high-contrast:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+/* ElectroStore Design System - Modern Tech E-commerce Theme */
+
+@layer base {
+  :root {
+    /* Core Colors - Clean White with Electric Yellow Accents */
+    --background: 0 0% 100%;
+    --foreground: 220 20% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
+
+    /* Primary - Electric Yellow */
+    --primary: 45 100% 51%;
+    --primary-foreground: 220 20% 10%;
+
+    /* Secondary - Cool Dark */
+    --secondary: 220 20% 14%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 45%;
+
+    /* Accent - Tech Blue */
+    --accent: 212 100% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 45 100% 51%;
+
+    --radius: 0.75rem;
+
+    /* Custom Extended Palette */
+    --electro-yellow: 45 100% 51%;
+    --electro-yellow-dark: 45 100% 45%;
+    --electro-dark: 220 20% 14%;
+    --electro-darker: 220 25% 8%;
+    --electro-blue: 212 100% 50%;
+    --electro-success: 142 76% 36%;
+    --electro-warning: 38 92% 50%;
+    --electro-gray-100: 220 14% 96%;
+    --electro-gray-200: 220 13% 91%;
+    --electro-gray-300: 220 12% 80%;
+    --electro-gray-500: 220 10% 45%;
+    --electro-gray-700: 220 15% 25%;
+
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(220 20% 14%) 0%, hsl(220 25% 8%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(45 100% 51%) 0%, hsl(38 100% 55%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(212 100% 50%) 0%, hsl(220 100% 60%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(220 20% 10% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(220 20% 10% / 0.1), 0 2px 4px -2px hsl(220 20% 10% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(220 20% 10% / 0.1), 0 4px 6px -4px hsl(220 20% 10% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(220 20% 10% / 0.1), 0 8px 10px -6px hsl(220 20% 10% / 0.1);
+    --shadow-glow: 0 0 20px hsl(45 100% 51% / 0.3);
+
+    /* Sidebar */
+    --sidebar-background: 220 20% 14%;
+    --sidebar-foreground: 220 14% 96%;
+    --sidebar-primary: 45 100% 51%;
+    --sidebar-primary-foreground: 220 20% 10%;
+    --sidebar-accent: 220 15% 20%;
+    --sidebar-accent-foreground: 220 14% 96%;
+    --sidebar-border: 220 15% 20%;
+    --sidebar-ring: 45 100% 51%;
+  }
+
+  .dark {
+    --background: 220 25% 8%;
+    --foreground: 220 14% 96%;
+
+    --card: 220 20% 12%;
+    --card-foreground: 220 14% 96%;
+
+    --popover: 220 20% 12%;
+    --popover-foreground: 220 14% 96%;
+
+    --primary: 45 100% 51%;
+    --primary-foreground: 220 20% 10%;
+
+    --secondary: 220 15% 20%;
+    --secondary-foreground: 220 14% 96%;
+
+    --muted: 220 15% 18%;
+    --muted-foreground: 220 10% 55%;
+
+    --accent: 212 100% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 15% 20%;
+    --input: 220 15% 20%;
+    --ring: 45 100% 51%;
+
+    --sidebar-background: 220 25% 6%;
+    --sidebar-foreground: 220 14% 96%;
+    --sidebar-primary: 45 100% 51%;
+    --sidebar-primary-foreground: 220 20% 10%;
+    --sidebar-accent: 220 15% 15%;
+    --sidebar-accent-foreground: 220 14% 96%;
+    --sidebar-border: 220 15% 15%;
+    --sidebar-ring: 45 100% 51%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+  }
+
+  /* GLOBAL SCROLLBAR ELIMINATION - NUCLEAR APPROACH */
+  /* Hide ALL scrollbars everywhere except specific containers */
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  /* Remove all overflow properties that could cause scrolling */
+  .overflow-auto,
+  .overflow-y-auto,
+  .overflow-x-auto,
+  .overflow-scroll,
+  .overflow-y-scroll,
+  .overflow-x-scroll {
+    overflow: visible !important;
+  }
+
+  /* Remove all max-height constraints that could cause internal scrolling */
+  .max-h-96,
+  .max-h-64,
+  .max-h-80,
+  .max-h-72,
+  .max-h-60,
+  .max-h-48,
+  .max-h-screen,
+  .max-h-full,
+  [class*="max-h-"] {
+    max-height: none !important;
+  }
+
+  /* Admin layout specific styles */
+  .admin-layout {
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ADMIN LAYOUT GLOBAL FIXES */
+  .admin-layout {
+    height: 100vh;
+    overflow: hidden; /* Disable body scroll for admin */
+    position: relative; /* Ensure proper positioning context */
+  }
+
+  .admin-sidebar {
+    height: 100vh;
+    overflow: hidden;
+    position: fixed; /* Ensure sidebar stays fixed */
+    z-index: 30;
+  }
+
+  /* Force body to not scroll when admin layout is active */
+  body:has(.admin-layout),
+  body.admin-scroll-fixed {
+    overflow: hidden !important;
+    height: 100vh !important;
+    position: fixed !important;
+    width: 100% !important;
+    top: 0 !important;
+    left: 0 !important;
+  }
+
+  /* Also disable html scroll */
+  html:has(.admin-layout),
+  html:has(.admin-scroll-fixed) {
+    overflow: hidden !important;
+    height: 100vh !important;
+  }
+
+  /* ONLY allow main content to scroll */
+  .admin-main-content {
+    height: 100vh;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scrollbar-width: thin !important;
+    -ms-overflow-style: auto !important;
+    position: relative; /* Ensure proper scroll context */
+    scroll-behavior: smooth; /* Smooth scrolling */
+  }
+
+  .admin-main-content::-webkit-scrollbar {
+    display: block !important;
+    width: 8px !important;
+  }
+
+  .admin-main-content::-webkit-scrollbar-track {
+    background: hsl(var(--muted-foreground) / 0.1) !important;
+    border-radius: 4px !important;
+  }
+
+  .admin-main-content::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.3) !important;
+    border-radius: 4px !important;
+  }
+
+  .admin-main-content::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.5) !important;
+  }
+
+  /* Sidebar navigation scrollbar - ONLY for sidebar nav */
+  .admin-sidebar-nav {
+    overflow-y: auto !important;
+    scrollbar-width: thin !important;
+    -ms-overflow-style: auto !important;
+  }
+
+  .admin-sidebar-nav::-webkit-scrollbar {
+    display: block !important;
+    width: 4px !important;
+  }
+
+  .admin-sidebar-nav::-webkit-scrollbar-track {
+    background: #f3f4f6 !important;
+  }
+
+  .admin-sidebar-nav::-webkit-scrollbar-thumb {
+    background-color: #d1d5db !important;
+    border-radius: 2px !important;
+  }
+
+  .admin-sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background-color: #9ca3af !important;
+  }
+
+  /* USER SIDE PAGES - Only body can scroll */
+  .main-layout {
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* Ensure user pages use body scrolling only */
+  html:has(.main-layout) {
+    overflow-y: auto !important;
+    scrollbar-width: thin !important;
+    -ms-overflow-style: auto !important;
+  }
+
+  html:has(.main-layout)::-webkit-scrollbar {
+    display: block !important;
+    width: 6px !important;
+  }
+
+  html:has(.main-layout)::-webkit-scrollbar-track {
+    background: hsl(var(--muted-foreground) / 0.1) !important;
+  }
+
+  html:has(.main-layout)::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.3) !important;
+    border-radius: 3px !important;
+  }
+
+  html:has(.main-layout)::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.5) !important;
+  }
+
+  /* Force body to be the only scrollable element on user pages */
+  body:has(.main-layout) {
+    overflow-y: auto !important;
+    scrollbar-width: thin !important;
+    -ms-overflow-style: auto !important;
+  }
+
+  body:has(.main-layout)::-webkit-scrollbar {
+    display: block !important;
+    width: 6px !important;
+  }
+
+  body:has(.main-layout)::-webkit-scrollbar-track {
+    background: hsl(var(--muted-foreground) / 0.1) !important;
+  }
+
+  body:has(.main-layout)::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.3) !important;
+    border-radius: 3px !important;
+  }
+
+  body:has(.main-layout)::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.5) !important;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  /* Product Card Styles */
+  .product-card {
+    @apply relative overflow-hidden rounded-xl bg-card border border-border transition-all duration-300;
+    box-shadow: var(--shadow-md);
+  }
+
+  .product-card:hover {
+    @apply border-primary;
+    box-shadow: var(--shadow-xl);
+    transform: translateY(-4px);
+  }
+
+  /* Hero Section */
+  .hero-gradient {
+    background: var(--gradient-hero);
+  }
+
+  /* Badge Styles */
+  .badge-sale {
+    @apply inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  /* Price Styles */
+  .price-original {
+    @apply text-muted-foreground line-through text-sm;
+  }
+
+  .price-current {
+    @apply text-xl font-bold;
+    color: hsl(var(--electro-dark));
+  }
+
+  .price-offer {
+    @apply text-xl font-bold;
+    color: hsl(var(--destructive));
+  }
+
+  /* Category Card */
+  .category-card {
+    @apply relative overflow-hidden rounded-xl transition-all duration-300 cursor-pointer;
+    background: hsl(var(--electro-gray-100));
+  }
+
+  .category-card:hover {
+    transform: scale(1.03);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Mobile-specific category card optimizations */
+  @media (max-width: 640px) {
+    .category-card:hover {
+      transform: scale(1.02); /* Smaller scale on mobile for better UX */
+    }
+  }
+
+  /* Admin Sidebar */
+  .admin-sidebar {
+    background: hsl(var(--sidebar-background));
+  }
+
+  /* Stats Card */
+  .stats-card {
+    @apply p-6 rounded-xl border border-border bg-card;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Table Styles */
+  .admin-table {
+    @apply w-full text-sm;
+  }
+
+  .admin-table th {
+    @apply px-4 py-3 text-left font-semibold bg-muted text-muted-foreground;
+  }
+
+  .admin-table td {
+    @apply px-4 py-3 border-b border-border;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
+  }
+
+  /* Dialog specific scrolling */
+  .dialog-scroll-container {
+    overflow-y: auto !important;
+    scrollbar-width: thin !important;
+    -ms-overflow-style: auto !important;
+    max-height: calc(90vh - 200px) !important; /* Account for header and footer */
+    padding-right: 8px !important; /* Space for scrollbar */
+  }
+
+  .dialog-scroll-container::-webkit-scrollbar {
+    display: block !important;
+    width: 8px !important;
+  }
+
+  .dialog-scroll-container::-webkit-scrollbar-track {
+    background: hsl(var(--muted-foreground) / 0.1) !important;
+    border-radius: 4px !important;
+  }
+
+  .dialog-scroll-container::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.3) !important;
+    border-radius: 4px !important;
+  }
+
+  .dialog-scroll-container::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.5) !important;
+  }
+
+  /* Line clamp utilities for text truncation */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  /* FORCE SINGLE SCROLLBAR - NUCLEAR APPROACH */
+  /* Disable all scrollbars except specifically allowed ones */
+  * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  *::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* Force body to not scroll when admin layout is active */
+  body:has(.admin-layout),
+  body.admin-scroll-fixed {
+    overflow: hidden !important;
+    height: 100vh !important;
+  }
+
+  /* Also disable html scroll */
+  html:has(.admin-layout),
+  html:has(.admin-scroll-fixed) {
+    overflow: hidden !important;
+    height: 100vh !important;
+  }
+
+  /* Enable overflow only for specific containers - CRITICAL */
+  .admin-layout .admin-main-content,
+  body.admin-scroll-fixed .admin-main-content {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  .admin-layout .admin-sidebar-scroll,
+  body.admin-scroll-fixed .admin-sidebar-scroll {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  .admin-layout .dialog-scroll-container,
+  body.admin-scroll-fixed .dialog-scroll-container {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Re-enable scrollbars only for specific containers */
+  .admin-main-content,
+  .admin-sidebar-scroll,
+  .dialog-scroll-container,
+  body.admin-scroll-fixed .admin-main-content,
+  body.admin-scroll-fixed .admin-sidebar-scroll,
+  body.admin-scroll-fixed .dialog-scroll-container {
+    scrollbar-width: thin !important;
+    -ms-overflow-style: auto !important;
+  }
+
+  .admin-main-content::-webkit-scrollbar,
+  .admin-sidebar-scroll::-webkit-scrollbar,
+  .dialog-scroll-container::-webkit-scrollbar,
+  body.admin-scroll-fixed .admin-main-content::-webkit-scrollbar,
+  body.admin-scroll-fixed .admin-sidebar-scroll::-webkit-scrollbar,
+  body.admin-scroll-fixed .dialog-scroll-container::-webkit-scrollbar {
+    display: block !important;
+  }
+
+  /* Disable Radix UI component scrollbars in admin */
+  .admin-layout [data-radix-select-content],
+  .admin-layout [data-radix-dropdown-menu-content],
+  .admin-layout [data-radix-popover-content],
+  .admin-layout [data-radix-scroll-area-viewport],
+  body.admin-scroll-fixed [data-radix-select-content],
+  body.admin-scroll-fixed [data-radix-dropdown-menu-content],
+  body.admin-scroll-fixed [data-radix-popover-content],
+  body.admin-scroll-fixed [data-radix-scroll-area-viewport] {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  .admin-layout [data-radix-select-content]::-webkit-scrollbar,
+  .admin-layout [data-radix-dropdown-menu-content]::-webkit-scrollbar,
+  .admin-layout [data-radix-popover-content]::-webkit-scrollbar,
+  .admin-layout [data-radix-scroll-area-viewport]::-webkit-scrollbar,
+  body.admin-scroll-fixed [data-radix-select-content]::-webkit-scrollbar,
+  body.admin-scroll-fixed [data-radix-dropdown-menu-content]::-webkit-scrollbar,
+  body.admin-scroll-fixed [data-radix-popover-content]::-webkit-scrollbar,
+  body.admin-scroll-fixed [data-radix-scroll-area-viewport]::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* Disable table wrapper scroll in admin */
+  .admin-layout .relative.w-full.overflow-auto,
+  body.admin-scroll-fixed .relative.w-full.overflow-auto {
+    overflow: visible !important;
+  }
+
+  /* Disable any other overflow containers in admin except allowed ones */
+  .admin-layout div[class*="overflow-auto"]:not(.admin-main-content):not(.admin-sidebar-scroll):not(.dialog-scroll-container),
+  body.admin-scroll-fixed div[class*="overflow-auto"]:not(.admin-main-content):not(.admin-sidebar-scroll):not(.dialog-scroll-container) {
+    overflow: visible !important;
+  }
+
+  /* Hide scrollbar utility */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  .hide-scrollbar {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px hsl(45 100% 51% / 0.3); }
+    50% { box-shadow: 0 0 30px hsl(45 100% 51% / 0.5); }
+  }
+
+  /* Offer Icon Animations */
+  .animate-offer-pulse {
+    animation: offer-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes offer-pulse {
+    0%, 100% { 
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% { 
+      transform: scale(1.1);
+      opacity: 0.8;
+    }
+  }
+
+  .animate-offer-ping {
+    animation: offer-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes offer-ping {
+    75%, 100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.4s ease-out;
+  }
+
+  @keyframes slide-up {
+    from { 
+      opacity: 0;
+      transform: translateX(-50%) translateY(20px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 1.5s ease-in-out infinite;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* Notification dropdown scroll styles */
+  .notification-scroll {
+    scrollbar-width: thin !important;
+    scrollbar-color: #9CA3AF #F3F4F6 !important;
+    -ms-overflow-style: auto !important;
+  }
+
+  .notification-scroll::-webkit-scrollbar {
+    display: block !important;
+    width: 6px !important;
+  }
+
+  .notification-scroll::-webkit-scrollbar-track {
+    background: #F3F4F6 !important;
+    border-radius: 3px !important;
+  }
+
+  .notification-scroll::-webkit-scrollbar-thumb {
+    background: #9CA3AF !important;
+    border-radius: 3px !important;
+  }
+
+  .notification-scroll::-webkit-scrollbar-thumb:hover {
+    background: #6B7280 !important;
+  }
+
+  .container-fluid {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}
+
+/* Admin Sidebar Custom Scrollbar */
+.admin-sidebar-scroll {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #cbd5e1 transparent !important;
+}
+
+.admin-sidebar-scroll::-webkit-scrollbar {
+  width: 6px !important;
+  display: block !important;
+}
+
+.admin-sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.admin-sidebar-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important;
+  border-radius: 3px !important;
+}
+
+.admin-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important;
+}
+

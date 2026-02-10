@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Auth Module Test</title>
+</head>
+<body>
+    <h1>Employee Auth Module Test</h1>
+    <div id="status">Testing module loading...</div>
+    
+    <script type="module">
+        try {
+            console.log('Testing useEmployeeAuth module...');
+            
+            // Test if the module can be imported
+            const response = await fetch('/src/hooks/useEmployeeAuth.tsx');
+            console.log('Module response status:', response.status);
+            console.log('Module content-type:', response.headers.get('content-type'));
+            
+            if (response.status === 200) {
+                const content = await response.text();
+                console.log('Module content length:', content.length);
+                
+                if (content.includes('EmployeeAuthProvider')) {
+                    document.getElementById('status').innerHTML = '✅ Module loading successful - EmployeeAuthProvider found';
+                } else {
+                    document.getElementById('status').innerHTML = '❌ Module content invalid - EmployeeAuthProvider not found';
+                }
+            } else {
+                document.getElementById('status').innerHTML = '❌ Module loading failed: ' + response.status;
+            }
+        } catch (error) {
+            console.error('Module test error:', error);
+            document.getElementById('status').innerHTML = '❌ Error: ' + error.message;
+        }
+    </script>
+</body>
+</html>
