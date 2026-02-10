@@ -10,7 +10,7 @@ import { DataPagination } from '@/components/ui/data-pagination';
 import { TableShimmer, StatsCardShimmer } from '@/components/ui/Shimmer';
 import { usePagination } from '@/hooks/usePagination';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Eye, Printer, Download, Filter, Calendar, Edit, Trash2 } from 'lucide-react';
+import { Search, Eye, Printer, Download, Filter, Calendar, Edit, Trash2, Plus, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -53,6 +53,7 @@ export default function SalesInvoices() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
@@ -63,6 +64,20 @@ export default function SalesInvoices() {
     payment_status: '',
     payment_method: '',
     notes: ''
+  });
+  const [newInvoiceData, setNewInvoiceData] = useState({
+    customer_name: '',
+    customer_phone: '',
+    payment_method: 'cash',
+    payment_status: 'pending',
+    status: 'pending',
+    notes: '',
+    items: [] as Array<{
+      product_name: string;
+      quantity: number;
+      unit_price: number;
+      tax_rate: number;
+    }>
   });
 
   useEffect(() => {
@@ -200,6 +215,100 @@ export default function SalesInvoices() {
       console.error('Error deleting invoice:', error);
       toast.error('Failed to delete invoice');
     }
+  };
+
+  const handleAddNewInvoice = async () => {
+    if (!newInvoiceData.customer_name || newInvoiceData.items.length === 0) {
+      toast.error('Please fill customer name and add at least one item');
+      return;
+    }
+
+    try {
+      // Calculate totals
+      const subtotal = newInvoiceData.items.reduce((sum, item) => 
+        sum + (item.quantity * item.unit_price), 0
+      );
+      const taxAmount = newInvoiceData.items.reduce((sum, item) => 
+        sum + (item.quantity * item.unit_price * item.tax_rate / 100), 0
+      );
+      const totalAmount = subtotal + taxAmount;
+
+      // Generate invoice number
+      const invoiceNumber = `INV-${Date.now().toString().slice(-8)}`;
+
+      // Insert order
+      const { data: orderData, error: orderError } = await (supabase as any)
+        .from('orders')
+        .insert({
+          invoice_number: invoiceNumber,
+          customer_name: newInvoiceData.customer_name,
+          customer_phone: newInvoiceData.customer_phone || null,
+          subtotal: subtotal,
+          tax_amount: taxAmount,
+          discount_amount: 0,
+          total_amount: totalAmount,
+          payment_method: newInvoiceData.payment_method,
+          payment_status: newInvoiceData.payment_status,
+          status: newInvoiceData.status,
+          notes: newInvoiceData.notes || null,
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // Insert order items
+      const orderItems = newInvoiceData.items.map(item => ({
+        order_id: orderData.id,
+        product_name: item.product_name,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        tax_rate: item.tax_rate,
+        tax_amount: (item.quantity * item.unit_price * item.tax_rate / 100),
+        line_total: (item.quantity * item.unit_price) + (item.quantity * item.unit_price * item.tax_rate / 100)
+      }));
+
+      const { error: itemsError } = await (supabase as any)
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) throw itemsError;
+
+      toast.success('Invoice created successfully!');
+      setIsAddDialogOpen(false);
+      setNewInvoiceData({
+        customer_name: '',
+        customer_phone: '',
+        payment_method: 'cash',
+        payment_status: 'pending',
+        status: 'pending',
+        notes: '',
+        items: []
+      });
+      fetchOrders();
+    } catch (error) {
+      console.error('Error creating invoice:', error);
+      toast.error('Failed to create invoice');
+    }
+  };
+
+  const sendWhatsAppInvoice = (order: Order) => {
+    if (!order.customer_phone && !order.customers?.phone) {
+      toast.error('Customer phone number not available');
+      return;
+    }
+
+    const phone = (order.customer_phone || order.customers?.phone || '').replace(/[^0-9]/g, '');
+    const invoiceNumber = order.invoice_number || order.id.slice(0, 8);
+    const customerName = order.customers?.name || order.customer_name || 'Customer';
+    const totalAmount = (order.total_amount || 0).toLocaleString();
+    
+    const message = `Hello ${customerName},%0A%0AThank you for your purchase!%0A%0A*Invoice Details:*%0AInvoice No: ${invoiceNumber}%0ADate: ${new Date(order.created_at).toLocaleDateString()}%0ATotal Amount: ₹${totalAmount}%0APayment Status: ${order.payment_status || 'pending'}%0A%0A*Items:*%0A${order.order_items?.map((item, i) => `${i + 1}. ${item.product_name} x ${item.quantity} = ₹${item.line_total.toFixed(2)}`).join('%0A') || 'N/A'}%0A%0AThank you for shopping with us!%0A%0A- ElectroStore Team`;
+
+    const whatsappUrl = `https://wa.me/${phone}?text=${message}`;
+    window.open(whatsappUrl, '_blank');
+    toast.success('Opening WhatsApp...');
   };
 
   const printInvoice = (order: Order) => {
@@ -399,10 +508,16 @@ export default function SalesInvoices() {
       {/* Header - Responsive */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Sales Invoices</h1>
-        <Button onClick={exportToCSV} variant="outline" className="w-full sm:w-auto h-11 sm:h-10 md:h-11 text-sm sm:text-base touch-manipulation">
-          <Download className="h-4 w-4 mr-2" />
-          <span>Export CSV</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setIsAddDialogOpen(true)} className="flex-1 sm:flex-none h-11 sm:h-10 md:h-11 text-sm sm:text-base touch-manipulation">
+            <Plus className="h-4 w-4 mr-2" />
+            <span>Add Invoice</span>
+          </Button>
+          <Button onClick={exportToCSV} variant="outline" className="flex-1 sm:flex-none h-11 sm:h-10 md:h-11 text-sm sm:text-base touch-manipulation">
+            <Download className="h-4 w-4 mr-2" />
+            <span>Export CSV</span>
+          </Button>
+        </div>
       </div>
 
       {/* Statistics Cards - Responsive Grid: 2 cols mobile → 4 cols desktop */}
@@ -621,6 +736,15 @@ export default function SalesInvoices() {
                             </Button>
                             <Button
                               size="sm"
+                              variant="outline"
+                              onClick={() => sendWhatsAppInvoice(order)}
+                              className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                              title="Send via WhatsApp"
+                            >
+                              <MessageCircle className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
                               variant="destructive"
                               onClick={() => handleDeleteOrder(order.id, order.invoice_number || order.id.slice(0, 8))}
                               className="h-8 w-8 p-0"
@@ -705,6 +829,15 @@ export default function SalesInvoices() {
                         >
                           <Printer className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
                           <span>Print</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => sendWhatsAppInvoice(order)}
+                          className="flex-1 h-10 sm:h-9 text-xs sm:text-sm touch-manipulation text-green-600 hover:text-green-700 hover:bg-green-50"
+                        >
+                          <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
+                          <span>WhatsApp</span>
                         </Button>
                         <Button
                           size="sm"
@@ -874,6 +1007,10 @@ export default function SalesInvoices() {
                 <Button variant="outline" onClick={() => setIsViewDialogOpen(false)} className="w-full sm:w-auto h-11 sm:h-10 md:h-11 text-sm sm:text-base touch-manipulation">
                   Close
                 </Button>
+                <Button variant="outline" onClick={() => sendWhatsAppInvoice(selectedOrder)} className="w-full sm:w-auto h-11 sm:h-10 md:h-11 text-sm sm:text-base touch-manipulation text-green-600 hover:text-green-700 hover:bg-green-50">
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  <span>Send WhatsApp</span>
+                </Button>
                 <Button variant="outline" onClick={() => printInvoice(selectedOrder)} className="w-full sm:w-auto h-11 sm:h-10 md:h-11 text-sm sm:text-base touch-manipulation">
                   <Printer className="h-4 w-4 mr-2" />
                   <span>Print</span>
@@ -1042,6 +1179,273 @@ export default function SalesInvoices() {
               disabled={!editFormData.status || !editFormData.payment_status}
             >
               Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ✅ NEW: Add Invoice Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+        setIsAddDialogOpen(open);
+        if (!open) {
+          setNewInvoiceData({
+            customer_name: '',
+            customer_phone: '',
+            payment_method: 'cash',
+            payment_status: 'pending',
+            status: 'pending',
+            notes: '',
+            items: []
+          });
+        }
+      }}>
+        <DialogContent className="w-[96vw] sm:w-[90vw] md:w-full max-w-3xl max-h-[92vh] sm:max-h-[90vh] overflow-hidden flex flex-col p-0">
+          <DialogHeader className="flex-shrink-0 pb-3 sm:pb-4 border-b px-4 sm:px-6 pt-4 sm:pt-6">
+            <DialogTitle className="text-base sm:text-lg md:text-xl">Create New Invoice</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
+              Add customer details and items to create a new sales invoice.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto dialog-scroll-container px-4 sm:px-6">
+            <div className="space-y-4 sm:space-y-5 py-4">
+              {/* Customer Information */}
+              <div className="p-3 sm:p-4 border-2 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100/50">
+                <h3 className="font-bold mb-3 text-sm sm:text-base">Customer Information</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="customer-name" className="text-sm font-medium">
+                      Customer Name <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="customer-name"
+                      placeholder="Enter customer name"
+                      value={newInvoiceData.customer_name}
+                      onChange={(e) => setNewInvoiceData({...newInvoiceData, customer_name: e.target.value})}
+                      className="h-11 sm:h-10 mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="customer-phone" className="text-sm font-medium">
+                      Phone Number
+                    </Label>
+                    <Input
+                      id="customer-phone"
+                      placeholder="Enter phone number"
+                      value={newInvoiceData.customer_phone}
+                      onChange={(e) => setNewInvoiceData({...newInvoiceData, customer_phone: e.target.value})}
+                      className="h-11 sm:h-10 mt-1.5"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Invoice Details */}
+              <div className="p-3 sm:p-4 border-2 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100/50">
+                <h3 className="font-bold mb-3 text-sm sm:text-base">Invoice Details</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="payment-method" className="text-sm font-medium">Payment Method</Label>
+                    <Select 
+                      value={newInvoiceData.payment_method} 
+                      onValueChange={(value) => setNewInvoiceData({...newInvoiceData, payment_method: value})}
+                    >
+                      <SelectTrigger id="payment-method" className="h-11 sm:h-10 mt-1.5">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Cash</SelectItem>
+                        <SelectItem value="card">Card</SelectItem>
+                        <SelectItem value="upi">UPI</SelectItem>
+                        <SelectItem value="net_banking">Net Banking</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="payment-status" className="text-sm font-medium">Payment Status</Label>
+                    <Select 
+                      value={newInvoiceData.payment_status} 
+                      onValueChange={(value) => setNewInvoiceData({...newInvoiceData, payment_status: value})}
+                    >
+                      <SelectTrigger id="payment-status" className="h-11 sm:h-10 mt-1.5">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
+                        <SelectItem value="partially_paid">Partially Paid</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="order-status" className="text-sm font-medium">Order Status</Label>
+                    <Select 
+                      value={newInvoiceData.status} 
+                      onValueChange={(value) => setNewInvoiceData({...newInvoiceData, status: value})}
+                    >
+                      <SelectTrigger id="order-status" className="h-11 sm:h-10 mt-1.5">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="processing">Processing</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Items */}
+              <div className="p-3 sm:p-4 border-2 rounded-lg bg-gradient-to-br from-green-50 to-green-100/50">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="font-bold text-sm sm:text-base">Items</h3>
+                  <Button
+                    size="sm"
+                    onClick={() => setNewInvoiceData({
+                      ...newInvoiceData,
+                      items: [...newInvoiceData.items, { product_name: '', quantity: 1, unit_price: 0, tax_rate: 0 }]
+                    })}
+                    className="h-9 text-xs"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    Add Item
+                  </Button>
+                </div>
+                
+                {newInvoiceData.items.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">No items added. Click "Add Item" to start.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {newInvoiceData.items.map((item, index) => (
+                      <div key={index} className="grid grid-cols-12 gap-2 p-3 border rounded-lg bg-white">
+                        <div className="col-span-12 sm:col-span-4">
+                          <Input
+                            placeholder="Product name"
+                            value={item.product_name}
+                            onChange={(e) => {
+                              const items = [...newInvoiceData.items];
+                              items[index].product_name = e.target.value;
+                              setNewInvoiceData({...newInvoiceData, items});
+                            }}
+                            className="h-9 text-sm"
+                          />
+                        </div>
+                        <div className="col-span-4 sm:col-span-2">
+                          <Input
+                            type="number"
+                            placeholder="Qty"
+                            value={item.quantity}
+                            onChange={(e) => {
+                              const items = [...newInvoiceData.items];
+                              items[index].quantity = parseInt(e.target.value) || 0;
+                              setNewInvoiceData({...newInvoiceData, items});
+                            }}
+                            className="h-9 text-sm"
+                          />
+                        </div>
+                        <div className="col-span-4 sm:col-span-2">
+                          <Input
+                            type="number"
+                            placeholder="Price"
+                            value={item.unit_price}
+                            onChange={(e) => {
+                              const items = [...newInvoiceData.items];
+                              items[index].unit_price = parseFloat(e.target.value) || 0;
+                              setNewInvoiceData({...newInvoiceData, items});
+                            }}
+                            className="h-9 text-sm"
+                          />
+                        </div>
+                        <div className="col-span-3 sm:col-span-2">
+                          <Input
+                            type="number"
+                            placeholder="Tax%"
+                            value={item.tax_rate}
+                            onChange={(e) => {
+                              const items = [...newInvoiceData.items];
+                              items[index].tax_rate = parseFloat(e.target.value) || 0;
+                              setNewInvoiceData({...newInvoiceData, items});
+                            }}
+                            className="h-9 text-sm"
+                          />
+                        </div>
+                        <div className="col-span-1 flex items-center justify-center">
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              const items = newInvoiceData.items.filter((_, i) => i !== index);
+                              setNewInvoiceData({...newInvoiceData, items});
+                            }}
+                            className="h-9 w-9 p-0"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Notes */}
+              <div>
+                <Label htmlFor="notes" className="text-sm font-medium">Notes</Label>
+                <Textarea
+                  id="notes"
+                  placeholder="Add any notes..."
+                  value={newInvoiceData.notes}
+                  onChange={(e) => setNewInvoiceData({...newInvoiceData, notes: e.target.value})}
+                  className="min-h-[80px] mt-1.5 text-sm"
+                />
+              </div>
+
+              {/* Summary */}
+              {newInvoiceData.items.length > 0 && (
+                <div className="p-3 sm:p-4 border-2 rounded-lg bg-gradient-to-br from-yellow-50 to-yellow-100/50">
+                  <h3 className="font-bold mb-2 text-sm sm:text-base">Summary</h3>
+                  <div className="space-y-1.5 text-sm">
+                    <div className="flex justify-between">
+                      <span>Subtotal:</span>
+                      <span className="font-semibold">
+                        ₹{newInvoiceData.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Tax:</span>
+                      <span className="font-semibold">
+                        ₹{newInvoiceData.items.reduce((sum, item) => sum + (item.quantity * item.unit_price * item.tax_rate / 100), 0).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between font-bold text-base border-t pt-1.5 text-primary">
+                      <span>Total:</span>
+                      <span>
+                        ₹{(newInvoiceData.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0) + 
+                          newInvoiceData.items.reduce((sum, item) => sum + (item.quantity * item.unit_price * item.tax_rate / 100), 0)).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-shrink-0 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsAddDialogOpen(false)} 
+              className="w-full sm:w-auto h-11 sm:h-10 text-sm sm:text-base"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleAddNewInvoice} 
+              className="w-full sm:w-auto h-11 sm:h-10 text-sm sm:text-base"
+              disabled={!newInvoiceData.customer_name || newInvoiceData.items.length === 0}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create Invoice
             </Button>
           </div>
         </DialogContent>
