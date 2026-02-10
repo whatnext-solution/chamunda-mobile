@@ -7,6 +7,53 @@
 -- ============================================================================
 
 -- ============================================================================
+-- STEP 0: CHECK AND CREATE USER_PROFILES TABLE IF NOT EXISTS
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS public.user_profiles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
+    full_name VARCHAR(255),
+    phone VARCHAR(20),
+    address TEXT,
+    city VARCHAR(100),
+    state VARCHAR(100),
+    zip_code VARCHAR(20),
+    country VARCHAR(100) DEFAULT 'India',
+    role VARCHAR(20) DEFAULT 'customer' CHECK (role IN ('customer', 'admin', 'employee', 'affiliate', 'instagram')),
+    marketing_role VARCHAR(20) DEFAULT 'none' CHECK (marketing_role IN ('affiliate', 'instagram', 'none')),
+    avatar_url TEXT,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create loyalty_coins_wallet table if not exists
+CREATE TABLE IF NOT EXISTS public.loyalty_coins_wallet (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
+    available_coins INTEGER DEFAULT 0,
+    total_coins_earned INTEGER DEFAULT 0,
+    total_coins_used INTEGER DEFAULT 0,
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create unified_wallet table if not exists
+CREATE TABLE IF NOT EXISTS public.unified_wallet (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
+    loyalty_coins INTEGER DEFAULT 0,
+    affiliate_earnings DECIMAL(10,2) DEFAULT 0.00,
+    instagram_rewards INTEGER DEFAULT 0,
+    refund_credits DECIMAL(10,2) DEFAULT 0.00,
+    promotional_credits DECIMAL(10,2) DEFAULT 0.00,
+    total_redeemable_amount DECIMAL(10,2) DEFAULT 0.00,
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================================================
 -- STEP 1: ENABLE RLS ON USER_PROFILES TABLE
 -- ============================================================================
 
@@ -82,6 +129,7 @@ RETURNS TRIGGER AS $$
 DECLARE
   user_email TEXT;
   user_name TEXT;
+  profile_exists BOOLEAN;
 BEGIN
   -- Get email from new user
   user_email := NEW.email;
@@ -93,60 +141,68 @@ BEGIN
     SPLIT_PART(user_email, '@', 1)
   );
 
-  -- Insert into user_profiles
-  INSERT INTO public.user_profiles (
-    user_id,
-    full_name,
-    role,
-    marketing_role,
-    is_active,
-    created_at,
-    updated_at
-  ) VALUES (
-    NEW.id,
-    user_name,
-    'customer',
-    'none',
-    true,
-    NOW(),
-    NOW()
-  );
+  -- Check if profile already exists
+  SELECT EXISTS(
+    SELECT 1 FROM public.user_profiles WHERE user_id = NEW.id
+  ) INTO profile_exists;
 
-  -- Create loyalty wallet for new user
-  INSERT INTO public.loyalty_coins_wallet (
-    user_id,
-    available_coins,
-    total_coins_earned,
-    total_coins_used,
-    created_at
-  ) VALUES (
-    NEW.id,
-    0,
-    0,
-    0,
-    NOW()
-  )
-  ON CONFLICT (user_id) DO NOTHING;
+  -- Only insert if profile doesn't exist
+  IF NOT profile_exists THEN
+    -- Insert into user_profiles
+    INSERT INTO public.user_profiles (
+      user_id,
+      full_name,
+      role,
+      marketing_role,
+      is_active,
+      created_at,
+      updated_at
+    ) VALUES (
+      NEW.id,
+      user_name,
+      'customer',
+      'none',
+      true,
+      NOW(),
+      NOW()
+    );
 
-  -- Create unified wallet for new user
-  INSERT INTO public.unified_wallet (
-    user_id,
-    loyalty_coins,
-    affiliate_earnings,
-    refund_credits,
-    promotional_credits,
-    total_redeemable_amount,
-    created_at
-  ) VALUES (
-    NEW.id,
-    0,
-    0.00,
-    0.00,
-    0.00,
-    0.00,
-    NOW()
-  )
-  ON CONFLICT (user_id) DO NOTHING;
+    -- Create loyalty wallet for new user
+    INSERT INTO public.loyalty_coins_wallet (
+      user_id,
+      available_coins,
+      total_coins_earned,
+      total_coins_used,
+      created_at
+    ) VALUES (
+      NEW.id,
+      0,
+      0,
+      0,
+      NOW()
+    )
+    ON CONFLICT (user_id) DO NOTHING;
+
+    -- Create unified wallet for new user
+    INSERT INTO public.unified_wallet (
+      user_id,
+      loyalty_coins,
+      affiliate_earnings,
+      refund_credits,
+      promotional_credits,
+      total_redeemable_amount,
+      created_at
+    ) VALUES (
+      NEW.id,
+      0,
+      0.00,
+      0.00,
+      0.00,
+      0.00,
+      NOW()
+    )
+    ON CONFLICT (user_id) DO NOTHING;
+  END IF;
 
   RETURN NEW;
 EXCEPTION
