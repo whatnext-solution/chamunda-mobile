@@ -2,8 +2,8 @@ import { ReactNode, useEffect, Suspense } from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { MobileBottomNav } from './MobileBottomNav';
-import { LazyWrapper } from '@/components/ui/LazyWrapper';
-import { HeaderShimmer, FooterShimmer } from '@/components/ui/Shimmer';
+import { LazyWrapper } from '../ui/LazyWrapper';
+import { HeaderShimmer, FooterShimmer } from '../ui/Shimmer';
 import { useLocation } from 'react-router-dom';
 
 interface MainLayoutProps {
