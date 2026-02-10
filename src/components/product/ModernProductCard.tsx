@@ -35,7 +35,7 @@ export function ModernProductCard({
 }: ModernProductCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const { addToCart } = useCart();
+  const { addItem: addToCart } = useCart();
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist();
 
   const isWishlisted = isInWishlist(product.id);
@@ -51,11 +51,12 @@ export function ModernProductCard({
     addToCart({
       id: product.id,
       name: product.name,
-      price: finalPrice,
-      image: product.image_url || '',
-      quantity: 1
+      price: product.price,
+      offer_price: product.offer_price,
+      image_url: product.image_url || '',
+      slug: product.slug,
+      stock_quantity: product.stock_quantity || 0
     });
-    toast.success('Added to cart!');
   };
 
   const handleWishlistToggle = (e: React.MouseEvent) => {
